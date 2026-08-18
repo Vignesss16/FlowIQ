@@ -135,8 +135,8 @@ export default function AdminDashboardScreen() {
         return;
       }
 
-      // 1. Mark current as completed
-      const { error: err1 } = await supabase.from("tokens").update({ status: "completed" }).eq("id", currentToken.id);
+      // 1. Mark current as served
+      const { error: err1 } = await supabase.from("tokens").update({ status: "served" }).eq("id", currentToken.id);
       if (err1) throw err1;
 
       // 2. Shift all others down

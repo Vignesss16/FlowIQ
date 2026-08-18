@@ -84,7 +84,7 @@ export default function ProfileScreen() {
                       <div style={{ fontSize: 12, color: C.body, marginTop: 2 }}>{new Date(t.created_at).toLocaleDateString()}</div>
                     </div>
                   </div>
-                  <div className="fiq-mono" style={{ fontSize: 11, color: t.status === "completed" ? C.green : C.amber }}>
+                  <div className="fiq-mono" style={{ fontSize: 11, color: t.status === "served" ? C.green : C.amber }}>
                     {t.status.toUpperCase()}
                   </div>
                 </div>
