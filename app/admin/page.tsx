@@ -49,6 +49,7 @@ function Toggle({ on, onClick }: { on: boolean; onClick: () => void }) {
 export default function AdminDashboardScreen() {
   const router = useRouter();
   const [counters, setCounters] = useState<Record<string, any>>({});
+  const [activeTokens, setActiveTokens] = useState<Record<string, any>>({});
   const [queueStats, setQueueStats] = useState<any>({ waiting_count: 0, avg_wait: 0, growth_pct: 0, queue_velocity_pct: 0 });
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
@@ -65,9 +66,10 @@ export default function AdminDashboardScreen() {
   }, [router]);
 
   const fetchState = async () => {
-    const [{ data: cData }, { data: qData }] = await Promise.all([
+    const [{ data: cData }, { data: qData }, { data: tData }] = await Promise.all([
       supabase.from("counters").select("*").order("id"),
-      supabase.from("queue_stats").select("*").single()
+      supabase.from("queue_stats").select("*").single(),
+      supabase.from("tokens").select("*").eq("status", "waiting").order("position")
     ]);
     if (cData) {
       const cObj = cData.reduce((acc, c) => ({ ...acc, [c.id]: c }), {});
@@ -75,6 +77,15 @@ export default function AdminDashboardScreen() {
     }
     if (qData) {
       setQueueStats(qData);
+    }
+    if (tData) {
+      const activeObj: Record<string, any> = {};
+      tData.forEach(t => {
+        if (!activeObj[t.counter_id] || activeObj[t.counter_id].position > t.position) {
+          activeObj[t.counter_id] = t;
+        }
+      });
+      setActiveTokens(activeObj);
     }
   };
 
@@ -84,6 +95,7 @@ export default function AdminDashboardScreen() {
     const subs = supabase.channel('admin-channel')
       .on("postgres_changes", { event: "*", schema: "public", table: "counters" }, () => { fetchState(); })
       .on("postgres_changes", { event: "*", schema: "public", table: "queue_stats" }, (payload) => { setQueueStats(payload.new); })
+      .on("postgres_changes", { event: "*", schema: "public", table: "tokens" }, () => { fetchState(); })
       .subscribe();
 
     return () => { supabase.removeChannel(subs); };
@@ -113,6 +125,27 @@ export default function AdminDashboardScreen() {
       growth_pct: -4,
       queue_velocity_pct: 12
     }).eq("id", 1);
+  };
+
+  const serveNext = async (counterId: string) => {
+    const currentToken = activeTokens[counterId];
+    if (!currentToken) return;
+
+    // 1. Mark current as completed
+    await supabase.from("tokens").update({ status: "completed" }).eq("id", currentToken.id);
+
+    // 2. Shift all others down
+    const { data: waitingTokens } = await supabase.from("tokens")
+      .select("*")
+      .eq("counter_id", counterId)
+      .eq("status", "waiting")
+      .order("position");
+
+    if (waitingTokens) {
+      await Promise.all(waitingTokens.map(t => 
+        supabase.from("tokens").update({ position: t.position - 1 }).eq("id", t.id)
+      ));
+    }
   };
 
   const dOpen = counters["D"]?.status === "active";
@@ -207,9 +240,19 @@ export default function AdminDashboardScreen() {
                       <div className="fiq-mono" style={{ fontSize: 14, fontWeight: 700, color: c.status === "closed" ? C.gray : C.ink }}>
                         {c.status === "closed" ? "— closed —" : `${c.wait_minutes} min`}
                       </div>
+                      {c.status === "active" && activeTokens[id] && (
+                        <div style={{ fontSize: 11, color: C.bodyLight, marginTop: 4 }}>
+                          Serving: <b style={{ color: C.ink }}>#{activeTokens[id].id}</b>
+                        </div>
+                      )}
                     </div>
                   </div>
                   <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+                    {c.status === "active" && activeTokens[id] && (
+                      <button onClick={() => serveNext(id)} style={{ padding: "6px 12px", background: C.accent, color: "#FBF9F5", borderRadius: 6, fontSize: 11, fontWeight: 700, border: "none", cursor: "pointer" }}>
+                        Serve Next
+                      </button>
+                    )}
                     <Pill health={c.health} />
                     <Toggle on={c.status === "active"} onClick={() => toggleCounter(id)} />
                   </div>
