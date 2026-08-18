@@ -3,6 +3,7 @@ import React, { Suspense } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { LayoutDashboard, Zap, Map, User } from "lucide-react";
 import { C } from "./ui/theme";
+import { AIChatbot } from "./AIChatbot";
 
 function MobileLayoutInner({ children, showNav }: { children: React.ReactNode, showNav: boolean }) {
   const router = useRouter();
@@ -71,6 +72,7 @@ function MobileLayoutInner({ children, showNav }: { children: React.ReactNode, s
           })}
         </div>
       )}
+      <AIChatbot />
     </div>
   );
 }
