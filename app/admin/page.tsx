@@ -52,6 +52,7 @@ export default function AdminDashboardScreen() {
   const [activeTokens, setActiveTokens] = useState<Record<string, any>>({});
   const [queueStats, setQueueStats] = useState<any>({ waiting_count: 0, avg_wait: 0, growth_pct: 0, queue_velocity_pct: 0 });
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [toastMsg, setToastMsg] = useState<string | null>(null);
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -154,6 +155,9 @@ export default function AdminDashboardScreen() {
           if (error) throw error;
         }));
       }
+
+      setToastMsg(`Successfully served Token #${currentToken.id}`);
+      setTimeout(() => setToastMsg(null), 3000);
     } catch (err: any) {
       console.error(err);
       alert("Failed to serve next: " + err.message);
@@ -318,6 +322,26 @@ export default function AdminDashboardScreen() {
           </Card>
         </div>
       </div>
+
+      {toastMsg && (
+        <div style={{
+          position: "fixed",
+          bottom: 40,
+          left: "50%",
+          transform: "translateX(-50%)",
+          background: C.ink,
+          color: "#fff",
+          padding: "12px 24px",
+          borderRadius: 8,
+          fontSize: 14,
+          fontWeight: 600,
+          boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+          zIndex: 999,
+          animation: "fadein 0.3s ease"
+        }}>
+          {toastMsg}
+        </div>
+      )}
     </div>
   );
 }
