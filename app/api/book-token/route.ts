@@ -62,7 +62,7 @@ export async function POST(request: Request) {
     if (insertErr) throw insertErr;
 
     // Return the perfectly formatted token back to the Voice Agent
-    return NextResponse.json(newToken, { status: 200, headers: corsHeaders });
+    return NextResponse.json({ ...newToken, wait_minutes: waitTime }, { status: 200, headers: corsHeaders });
 
   } catch (error: any) {
     console.error("Voice Agent API Error:", error);
