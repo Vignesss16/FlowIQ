@@ -203,7 +203,7 @@ function DashboardContent() {
             <Card style={{ flex: 1, padding: "12px 14px" }}>
               <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
                 <Sparkles size={13} color={C.bodyLight} />
-                <Eyebrow color={C.bodyLight}>Confidence</Eyebrow>
+                <Eyebrow color={C.bodyLight}>AI Precision</Eyebrow>
               </div>
               <div className="fiq-display" style={{ fontSize: 26, color: C.ink, fontWeight: 700, marginTop: 3 }}>82%</div>
             </Card>
