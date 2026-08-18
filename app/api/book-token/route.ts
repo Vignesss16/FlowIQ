@@ -54,8 +54,7 @@ export async function POST(request: Request) {
         counter_id,
         is_handicapped: !!is_handicapped,
         status: "waiting",
-        position: nextPosition,
-        wait_minutes: waitTime
+        position: nextPosition
       })
       .select()
       .single();
