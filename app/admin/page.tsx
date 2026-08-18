@@ -168,6 +168,14 @@ export default function AdminDashboardScreen() {
               : `It is your turn! Please proceed to Counter ${counterId}.`;
             await supabase.from("notifications").insert({ token_id: t.id, text: notifText });
           }
+
+          // Notify handicapped users one step early (they moved from pos 3 to 2)
+          if (t.position === 3 && t.is_handicapped) {
+            await supabase.from("notifications").insert({ 
+              token_id: t.id, 
+              text: "You are next! Please remain seated; our staff will come assist you shortly." 
+            });
+          }
         }));
       }
 

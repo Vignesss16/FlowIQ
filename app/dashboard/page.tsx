@@ -146,6 +146,13 @@ function DashboardContent() {
         : `It is your turn! Please proceed to Counter ${tokenData.counter_id}.`;
       await supabase.from("notifications").insert({ token_id: tokenData.id, text: notifText });
     }
+    
+    if (newPos === 2 && tokenData.is_handicapped) {
+      await supabase.from("notifications").insert({ 
+        token_id: tokenData.id, 
+        text: "You are next! Please remain seated; our staff will come assist you shortly." 
+      });
+    }
   };
 
   const isNext = tokenData?.position === 1;
