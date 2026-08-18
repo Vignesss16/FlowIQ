@@ -30,17 +30,19 @@ function MobileLayoutInner({ children, showNav }: { children: React.ReactNode, s
       display: "flex",
       flexDirection: "column",
     }}>
-      <div style={{ flex: 1, display: "flex", flexDirection: "column", overflowY: "auto", paddingBottom: showNav ? 70 : 0 }} className="no-scrollbar">
+      <div style={{ flex: 1, display: "flex", flexDirection: "column", paddingBottom: showNav ? 90 : 20 }}>
         {children}
       </div>
       
       {showNav && (
         <div style={{
-          position: "absolute",
+          position: "fixed",
           bottom: 0,
-          left: 0,
-          right: 0,
-          height: 70,
+          left: "50%",
+          transform: "translateX(-50%)",
+          width: "100%",
+          maxWidth: 480,
+          height: 75,
           background: C.card,
           borderTop: `1px solid ${C.border}`,
           display: "flex",

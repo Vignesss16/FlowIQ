@@ -13,9 +13,9 @@ function HeatBlock({ id, health, wait, dots, closed }: { id: string, health: str
   const tint = HEALTH_TINT[health as keyof typeof HEALTH_TINT] || C.grayTint;
   
   return (
-    <div style={{ border: `1px solid ${color}55`, background: tint, borderRadius: 10, padding: 18, position: "relative", minHeight: 138, display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-        <div className="fiq-display" style={{ fontSize: 21, fontWeight: 800, color: C.ink }}>Counter {id}</div>
+    <div style={{ border: `1px solid ${color}55`, background: tint, borderRadius: 10, padding: "14px 12px", position: "relative", minHeight: 120, display: "flex", flexDirection: "column", justifyContent: "space-between", overflow: "hidden" }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 4 }}>
+        <div className="fiq-display" style={{ fontSize: 17, fontWeight: 800, color: C.ink }}>Counter {id}</div>
         <Pill health={health} size="sm" />
       </div>
       <div>
@@ -97,7 +97,7 @@ export default function HeatmapScreen() {
           <div style={{ textAlign: "center" }}>
             <span className="fiq-mono" style={{ fontSize: 10.5, letterSpacing: "0.2em", color: C.bodyLight }}>ENTRANCE</span>
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginTop: 16 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginTop: 16 }}>
             {['A', 'B', 'C', 'D'].map(id => {
               const c = counters[id] || { health: 'gray', wait_minutes: null, status: 'closed' };
               return (
