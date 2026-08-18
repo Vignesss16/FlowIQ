@@ -153,24 +153,24 @@ export default function AdminDashboardScreen() {
       let nextTokenId = null;
 
       if (waitingTokens) {
-        await Promise.all(waitingTokens.map(async (t) => {
-          if (t.position === 2 && t.is_handicapped) {
+        await Promise.all(waitingTokens.map(async (t, i) => {
+          if (i === 0 && t.is_handicapped) {
             nextTokenIsHandicapped = true;
             nextTokenId = t.id;
           }
           const { error } = await supabase.from("tokens").update({ position: t.position - 1 }).eq("id", t.id);
           if (error) throw error;
 
-          // Notify the user if it is now their turn (they moved from pos 2 to 1)
-          if (t.position === 2) {
+          // Notify the user if it is now their turn (they are now at the front of the queue)
+          if (i === 0) {
             const notifText = t.is_handicapped 
               ? "It is your turn! Please remain seated; our staff is coming to assist you to the counter."
               : `It is your turn! Please proceed to Counter ${counterId}.`;
             await supabase.from("notifications").insert({ token_id: t.id, text: notifText });
           }
 
-          // Notify handicapped users one step early (they moved from pos 3 to 2)
-          if (t.position === 3 && t.is_handicapped) {
+          // Notify handicapped users one step early (they are now 2nd in line)
+          if (i === 1 && t.is_handicapped) {
             await supabase.from("notifications").insert({ 
               token_id: t.id, 
               text: "You are next! Please remain seated; our staff will come assist you shortly." 
