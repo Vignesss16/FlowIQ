@@ -160,6 +160,14 @@ export default function AdminDashboardScreen() {
           }
           const { error } = await supabase.from("tokens").update({ position: t.position - 1 }).eq("id", t.id);
           if (error) throw error;
+
+          // Notify the user if it is now their turn (they moved from pos 2 to 1)
+          if (t.position === 2) {
+            const notifText = t.is_handicapped 
+              ? "It is your turn! Please remain seated; our staff is coming to assist you to the counter."
+              : `It is your turn! Please proceed to Counter ${counterId}.`;
+            await supabase.from("notifications").insert({ token_id: t.id, text: notifText });
+          }
         }));
       }
 
