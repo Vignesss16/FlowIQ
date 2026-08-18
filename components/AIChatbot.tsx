@@ -79,7 +79,7 @@ export function AIChatbot() {
       {isOpen && (
         <div style={{
           position: "fixed",
-          bottom: 24,
+          bottom: 90,
           right: 24,
           width: "calc(100vw - 48px)",
           maxWidth: 380,
