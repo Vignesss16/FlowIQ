@@ -46,6 +46,8 @@ function DashboardContent() {
   const [counters, setCounters] = useState<any[]>([]);
   const [toast, setToast] = useState<string | null>(null);
   const [unread, setUnread] = useState(0);
+  const [notifications, setNotifications] = useState<any[]>([]);
+  const [showNotifs, setShowNotifs] = useState(false);
   const [queueStats, setQueueStats] = useState<any>(null);
 
   // Initial fetch
@@ -53,14 +55,16 @@ function DashboardContent() {
     if (!tokenId) return;
 
     const fetchData = async () => {
-      const [{ data: token }, { data: ctrs }, { data: qs }] = await Promise.all([
+      const [{ data: token }, { data: ctrs }, { data: qs }, { data: notifs }] = await Promise.all([
         supabase.from("tokens").select("*").eq("id", tokenId).single(),
         supabase.from("counters").select("*").order("id"),
         supabase.from("queue_stats").select("*").single(),
+        supabase.from("notifications").select("*").eq("token_id", tokenId).order("id", { ascending: false })
       ]);
       if (token) setTokenData(token);
       if (ctrs) setCounters(ctrs);
       if (qs) setQueueStats(qs);
+      if (notifs) setNotifications(notifs);
     };
 
     fetchData();
@@ -75,6 +79,7 @@ function DashboardContent() {
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "notifications", filter: `token_id=eq.${tokenId}` }, (payload) => {
         const text = payload.new.text;
         setToast(text);
+        setNotifications((prev) => [payload.new, ...prev]);
         setUnread((u) => u + 1);
         setTimeout(() => setToast((t) => (t === text ? null : t)), 3800);
       }).subscribe();
@@ -167,12 +172,37 @@ function DashboardContent() {
                 <span style={{ width: 6, height: 6, borderRadius: 999, background: C.green }} className="fiq-pulse" />
                 LIVE
               </span>
-              <div style={{ position: "relative" }}>
+              <div 
+                style={{ position: "relative", cursor: "pointer" }}
+                onClick={() => {
+                  setShowNotifs(!showNotifs);
+                  if (!showNotifs) setUnread(0);
+                }}
+              >
                 <Bell size={16} color={C.body} />
                 {unread > 0 && (
                   <span className="fiq-mono" style={{ position: "absolute", top: -6, right: -6, minWidth: 14, height: 14, borderRadius: 999, background: C.accent, color: "#FBF9F5", fontSize: 9, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", padding: "0 3px" }}>
                     {unread}
                   </span>
+                )}
+                
+                {showNotifs && (
+                  <div style={{ position: "absolute", top: 24, right: 0, width: 280, background: C.card, borderRadius: 12, boxShadow: "0 8px 30px rgba(0,0,0,0.15)", border: `1px solid ${C.border}`, zIndex: 50, overflow: "hidden" }}>
+                    <div style={{ padding: "12px 16px", borderBottom: `1px solid ${C.border}`, background: C.grayTint }}>
+                      <Eyebrow color={C.ink}>Notifications</Eyebrow>
+                    </div>
+                    <div style={{ maxHeight: 300, overflowY: "auto" }}>
+                      {notifications.length === 0 ? (
+                        <div style={{ padding: 20, textAlign: "center", color: C.bodyLight, fontSize: 13 }}>No notifications yet.</div>
+                      ) : (
+                        notifications.map((n, i) => (
+                          <div key={n.id || i} style={{ padding: "14px 16px", borderBottom: i === notifications.length - 1 ? "none" : `1px solid ${C.border}`, fontSize: 13, color: C.ink, lineHeight: 1.5 }}>
+                            {n.text}
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </div>
                 )}
               </div>
             </div>
