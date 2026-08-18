@@ -137,7 +137,15 @@ function DashboardContent() {
 
   const simulateQueueMove = async () => {
     if (!tokenData || tokenData.position <= 1) return;
-    await supabase.from("tokens").update({ position: tokenData.position - 1 }).eq("id", tokenData.id);
+    const newPos = tokenData.position - 1;
+    await supabase.from("tokens").update({ position: newPos }).eq("id", tokenData.id);
+    
+    if (newPos === 1) {
+      const notifText = tokenData.is_handicapped 
+        ? "It is your turn! Please remain seated; our staff is coming to assist you to the counter."
+        : `It is your turn! Please proceed to Counter ${tokenData.counter_id}.`;
+      await supabase.from("notifications").insert({ token_id: tokenData.id, text: notifText });
+    }
   };
 
   const isNext = tokenData?.position === 1;
