@@ -128,23 +128,35 @@ export default function AdminDashboardScreen() {
   };
 
   const serveNext = async (counterId: string) => {
-    const currentToken = activeTokens[counterId];
-    if (!currentToken) return;
+    try {
+      const currentToken = activeTokens[counterId];
+      if (!currentToken) {
+        alert("No active token to serve!");
+        return;
+      }
 
-    // 1. Mark current as completed
-    await supabase.from("tokens").update({ status: "completed" }).eq("id", currentToken.id);
+      // 1. Mark current as completed
+      const { error: err1 } = await supabase.from("tokens").update({ status: "completed" }).eq("id", currentToken.id);
+      if (err1) throw err1;
 
-    // 2. Shift all others down
-    const { data: waitingTokens } = await supabase.from("tokens")
-      .select("*")
-      .eq("counter_id", counterId)
-      .eq("status", "waiting")
-      .order("position");
+      // 2. Shift all others down
+      const { data: waitingTokens, error: err2 } = await supabase.from("tokens")
+        .select("*")
+        .eq("counter_id", counterId)
+        .eq("status", "waiting")
+        .order("position");
+        
+      if (err2) throw err2;
 
-    if (waitingTokens) {
-      await Promise.all(waitingTokens.map(t => 
-        supabase.from("tokens").update({ position: t.position - 1 }).eq("id", t.id)
-      ));
+      if (waitingTokens) {
+        await Promise.all(waitingTokens.map(async (t) => {
+          const { error } = await supabase.from("tokens").update({ position: t.position - 1 }).eq("id", t.id);
+          if (error) throw error;
+        }));
+      }
+    } catch (err: any) {
+      console.error(err);
+      alert("Failed to serve next: " + err.message);
     }
   };
 
