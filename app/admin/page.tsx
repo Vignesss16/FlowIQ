@@ -149,15 +149,27 @@ export default function AdminDashboardScreen() {
         
       if (err2) throw err2;
 
+      let nextTokenIsHandicapped = false;
+      let nextTokenId = null;
+
       if (waitingTokens) {
         await Promise.all(waitingTokens.map(async (t) => {
+          if (t.position === 2 && t.is_handicapped) {
+            nextTokenIsHandicapped = true;
+            nextTokenId = t.id;
+          }
           const { error } = await supabase.from("tokens").update({ position: t.position - 1 }).eq("id", t.id);
           if (error) throw error;
         }));
       }
 
-      setToastMsg(`Successfully served Token #${currentToken.id}`);
-      setTimeout(() => setToastMsg(null), 3000);
+      if (nextTokenIsHandicapped) {
+        setToastMsg(`🚨 ASSISTANCE REQUIRED: Next patient (Token #${nextTokenId}) requires accessibility support!`);
+        setTimeout(() => setToastMsg(null), 8000); // Leave it up longer
+      } else {
+        setToastMsg(`Successfully served Token #${currentToken.id}`);
+        setTimeout(() => setToastMsg(null), 3000);
+      }
     } catch (err: any) {
       console.error(err);
       alert("Failed to serve next: " + err.message);
