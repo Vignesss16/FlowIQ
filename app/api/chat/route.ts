@@ -31,7 +31,7 @@ export async function POST(request: Request) {
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        model: "llama3-8b-8192", // Fast and capable model
+        model: "llama-3.1-8b-instant", // Fast and capable model
         messages: formattedMessages,
         temperature: 0.7,
         max_tokens: 512,
@@ -41,7 +41,7 @@ export async function POST(request: Request) {
     if (!response.ok) {
       const errorText = await response.text();
       console.error("Groq API Error:", errorText);
-      return NextResponse.json({ error: "Failed to fetch response from Groq" }, { status: response.status });
+      return NextResponse.json({ error: `Groq Error: ${response.status} - ${errorText}` }, { status: response.status });
     }
 
     const data = await response.json();
